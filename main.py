@@ -134,6 +134,7 @@ test = image_generator.flow_from_directory(test_dir,
 
 # Überprüfen der Pixelwerte vor der Darstellung
 generated_image, label = train.__getitem__(0)
+print("\n")
 print(f'Pixelwerte vor der Normalisierung: {generated_image[0].min()}, {generated_image[0].max()}')
 
 # Sicherstellen, dass die Bilddaten im Bereich [0, 1] liegen
