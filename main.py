@@ -132,14 +132,20 @@ test = image_generator.flow_from_directory(test_dir,
                                             class_mode='binary',
                                             target_size=(180, 180))
 
+# Überprüfen der Pixelwerte vor der Darstellung
+generated_image, label = train.__getitem__(0)
+print(f'Pixelwerte vor der Normalisierung: {generated_image[0].min()}, {generated_image[0].max()}')
 
-#TODO: Bild wird nicht erstellt
+# Sicherstellen, dass die Bilddaten im Bereich [0, 1] liegen
+normalized_image = (generated_image[0] - np.min(generated_image[0])) / (np.max(generated_image[0]) - np.min(generated_image[0]))
+print(f'Pixelwerte nach der Normalisierung: {normalized_image.min()}, {normalized_image.max()}')
 
-sns.set_style( 'white')  # Set the style for Seaborn plots to 'white', which removes the grid and sets the background to white.
-generated_image, label = train.__getitem__(0)  # Retrieve the first batch of images and their labels from the training dataset.
-plt.imshow(generated_image[0].astype('uint8'), cmap='gray')  # Display the first image in the batch. Convert the pixel values to unsigned 8-bit integers and display in grayscale.
-plt.colorbar()  # Add a color bar to the right side of the image plot, which shows the mapping of pixel values to colors.
+# Plotten des Bildes
+sns.set_style('white')
+plt.imshow(normalized_image.astype('float32'), cmap='gray', vmin=0, vmax=1)
+plt.colorbar()
 plt.title('Raw Chest X Ray Image')
+plt.show()
 
 
 
@@ -147,12 +153,10 @@ print(f"The dimensions of the image are {generated_image.shape[1]} pixels width 
 print(f"The maximum pixel value is {generated_image.max():.4f} and the minimum is {generated_image.min():.4f}")
 print(f"The mean value of the pixels is {generated_image.mean():.4f} and the standard deviation is {generated_image.std():.4f}")
 
-
-
-#TODO: hier ebenso
 sns.histplot(generated_image.ravel(),
             label=f"Pixel Mean {np.mean(generated_image):.4f} & Standard Deviation {np.std(generated_image):.4f}", kde=False)
 plt.legend(loc='upper center')
 plt.title('Distribution of Pixel Intensities in the Image')
 plt.xlabel('Pixel Intensity')
 plt.ylabel('# Pixels in Image')
+plt.show()
