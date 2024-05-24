@@ -10,13 +10,13 @@ from tensorflow import keras
 #print(os.listdir("input/chest_xray"))
 #print("Train/PNEUMONIA: ", len(os.listdir("input/chest_xray/train/PNEUMONIA")), "Images")
 
-train_dir = "input/chest_xray/train"
-test_dir = "input/chest_xray/test"
-val_dir = "input/chest_xray/val"
+train_dir = "input/chest_xray/train" #directory der trainingsdaten
+test_dir = "input/chest_xray/test" #directory der testdaten
+val_dir = "input/chest_xray/val" #directory der validationdaten
 
 #Anzahl der Daten in Konsole ausgeben
 print("========================================\nTrain set:")
-num_pneumonia = len(os.listdir(os.path.join(train_dir, 'PNEUMONIA')))
+num_pneumonia = len(os.listdir(os.path.join(train_dir, 'PNEUMONIA'))) #zählt die anzahl der dateien im gegebenen pfad
 num_normal = len(os.listdir(os.path.join(train_dir, 'NORMAL')))
 print(f"PNEUMONIA={num_pneumonia}")
 print(f"NORMAL={num_normal}")
@@ -36,6 +36,7 @@ print(" ")
 
 pneumonia_dir = "input/chest_xray/train/PNEUMONIA"
 pneumonia_files = [file for file in os.listdir(pneumonia_dir) if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
+# erstellt eine Liste von Filenamen aus dem pneumonia_dir die mit .jpg, .png oder .jpeg enden.
 
 plt.figure(figsize=(20, 10))
 for i in range(min(9, len(pneumonia_files))):  # Limit the loop to the number of image files or 9, whichever is smaller
@@ -94,7 +95,6 @@ plt.show()
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 print("\n\n +++ Image Preprocessing start:")
-
 
 image_generator = ImageDataGenerator(
     rotation_range=20,
