@@ -100,6 +100,93 @@ plt.show()
 -------------------
 
 ### Code Block 3 ###
+Mit diesem Code wird ein Sample Picture angezeigt von dem im nächsten Code Block 4 dann auch ein Grapgh der Verteilung der Farbwerte (0 - 255) gezeigt wird.
 
-Work in Progress ...
+```python
+#sample image, image
+pic_nr = 15
+pic_path = "input/chest_xray/train/NORMAL"
+normal_img = os.listdir(pic_path)[pic_nr]
+sample_img = plt.imread(os.path.join(normal_dir, normal_img))
+plt.imshow(sample_img, cmap='gray')
+plt.colorbar()
+plt.title('Raw Chest X Ray Image')
+
+print(f"Sample Picture {pic_nr} loaded from {pic_path}")
+print(f"The dimensions of the image are {sample_img.shape[0]} pixels width and {sample_img.shape[1]} pixels height, one single color channel.")
+print(f"The maximum pixel value is {sample_img.max():.4f} and the minimum is {sample_img.min():.4f}")
+print(f"The mean value of the pixels is {sample_img.mean():.4f} and the standard deviation is {sample_img.std():.4f}")
+```
+
+1) Sample Image auslesen
+```python
+pic_nr = 15
+pic_path = "input/chest_xray/train/NORMAL"
+normal_img = os.listdir(pic_path)[pic_nr]
+sample_img = plt.imread(os.path.join(normal_dir, normal_img))
+```
+
+`pic_nr = 15`, `normal_img = os.listdir(pic_path)[pic_nr]` => das 15. Element (Name der Datei) aus der Liste die durch `os.listdir()` generiert wird, wird in `normal_img`gespeichert.
+
+`sample_img = plt.imread(os.path.join(normal_dir, normal_img))` => dieses 15. File in dem Directory wird ausgelesen. 
+
+2) Image in Plot anzeigen
+
+```python
+plt.imshow(sample_img, cmap='gray')
+plt.colorbar()
+plt.title('Raw Chest X Ray Image') #Titel des Plots
+```
+
+`plt.imshow(sample_img, cmap='gray')` => Zeigt das Bild sample_img im aktuellen Subplot an. Das Argument `cmap='gray'` legt fest dass es in Graustufen angezeigt wird.
+
+`plt.colorbar():` => fügt dem Plot eine Farbskala hinzu. In diesem Fall Graustufen.
+
+`plt.title('Raw Chest X Ray Image')` => Titel des Plots der angezeigt wird.
+
+-----
+
+### Code Block 4 ###
+Mit diesem Code wird ein Plot erstellt der die "Distribution of Pixel Intensities in the Image" anzeigt.
+
+```python
+# Nutze histplot anstelle von distplot
+
+plt.figure(figsize=(10, 6))
+sns.histplot(sample_img.ravel(), kde=False, bins=32,
+             label=f"Pixel Mean {np.mean(sample_img):.4f} & Standard Deviation {np.std(sample_img):.4f}")
+plt.legend(loc='upper center')
+plt.title('Distribution of Pixel Intensities in the Image')
+plt.xlabel('Pixel Intensity')
+plt.ylabel('# Pixels in Image')
+plt.xlim(0, 255)  # Begrenzung der x-Achse auf typische Pixelwerte
+plt.show()
+```
+
+1) `plt.figure(figsize=(10, 6))` => Erstellt einen Plot mit 10x6
+
+
+2) `sns.histplot(sample_img.ravel(), kde=False, bins=32, label=f"Pixel Mean {np.mean(sample_img):.4f} & Standard Deviation {np.std(sample_img):.4f}")`
+
+
+`sns.histplot(...):` => Funktion von Seaborn erstellt ein Histogramm.
+
+`sample_img.ravel():`=> `ravel()`wandelt das 2D-Array `sample_img` in ein 1D-Array um. Ist notwendig, da `histplot` die Verteilung einer eindimensionalen Datenmenge darstellt.
+
+`kde=False:` => Nur Hostogramm wird angezeigt, keine KDE Kurve. Was auch immer das ist haha.
+
+`bins=32:` =>  legt die Anzahl der Bins (Intervalle) im Histogramm auf 32 fest. Bins sind die Intervalle, in die die Daten unterteilt werden auf der x-Achse.
+
+`label=f"Pixel Mean {np.mean(sample_img):.4f} & Standard Deviation {np.std(sample_img):.4f}":` => `label` fügt dem Plot eine Beschriftung hinzu. Hier wird ein f-stringS verwendet, um den Mittelwert und die Standardabweichung der Pixelintensitäten anzuzeigen.
+
+3. 
+```python
+plt.legend(loc='upper center') #legende (label mit Pixel Mean & Std. Deviation) wird 
+# in upper center des Bildes angezeigt.
+plt.title('Distribution of Pixel Intensities in the Image') #title
+plt.xlabel('Pixel Intensity') #label der x-Achse
+plt.ylabel('# Pixels in Image') #label der y-Achse
+plt.xlim(0, 255)  #begrenzung der x-Werte auf 0 - 255 (Graustufen)
+plt.show() #plot anzeigen
+```
 
