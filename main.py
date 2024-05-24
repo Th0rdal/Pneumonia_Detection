@@ -103,6 +103,7 @@ image_generator = ImageDataGenerator(
     zoom_range=0.1,
     samplewise_center=True,
     samplewise_std_normalization=True
+    #TODO: horizontal flip
 )
 
 train = image_generator.flow_from_directory(train_dir,
