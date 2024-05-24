@@ -139,19 +139,20 @@ print(f'Pixelwerte vor der Normalisierung: {generated_image[0].min()}, {generate
 # Sicherstellen, dass die Bilddaten im Bereich [0, 1] liegen
 normalized_image = (generated_image[0] - np.min(generated_image[0])) / (np.max(generated_image[0]) - np.min(generated_image[0]))
 print(f'Pixelwerte nach der Normalisierung: {normalized_image.min()}, {normalized_image.max()}')
+print("\n")
 
 # Plotten des Bildes
 sns.set_style('white')
 plt.imshow(normalized_image.astype('float32'), cmap='gray', vmin=0, vmax=1)
 plt.colorbar()
-plt.title('Raw Chest X Ray Image')
+plt.title('Raw Chest X Ray Image - Preprocessed')
 plt.show()
 
 
 
-print(f"The dimensions of the image are {generated_image.shape[1]} pixels width and {generated_image.shape[2]} pixels height, one single color channel.")
-print(f"The maximum pixel value is {generated_image.max():.4f} and the minimum is {generated_image.min():.4f}")
-print(f"The mean value of the pixels is {generated_image.mean():.4f} and the standard deviation is {generated_image.std():.4f}")
+# print(f"The dimensions of the image are {generated_image.shape[1]} pixels width and {generated_image.shape[2]} pixels height, one single color channel.")
+# print(f"The maximum pixel value is {generated_image.max():.4f} and the minimum is {generated_image.min():.4f}")
+# print(f"The mean value of the pixels is {generated_image.mean():.4f} and the standard deviation is {generated_image.std():.4f}\n")
 
 sns.histplot(generated_image.ravel(),
             label=f"Pixel Mean {np.mean(generated_image):.4f} & Standard Deviation {np.std(generated_image):.4f}", kde=False)
