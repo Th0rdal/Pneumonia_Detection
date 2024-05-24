@@ -104,21 +104,21 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 print("\n\n +++ Image Preprocessing start:")
 
+# Create an instance of ImageDataGenerator with specified augmentation parameters
 image_generator = ImageDataGenerator(
-    rotation_range=20,
-    width_shift_range=0.1,
-    shear_range=0.1,
-    zoom_range=0.1,
-    samplewise_center=True,
-    samplewise_std_normalization=True
-    #TODO: horizontal flip
-)
+    rotation_range=20,       # Rotate the image randomly up to 20 degrees
+    width_shift_range=0.1,   # Shift the image horizontally by up to 10% of the width
+    shear_range=0.1,         # Shear the image by up to 10%
+    zoom_range=0.1,          # Zoom in/out on the image by up to 10%
+    samplewise_center=True,  # Center the image data
+    samplewise_std_normalization=True)  # Normalize the image data to have standard deviation 1
 
+# Generate batches of tensor image data with real-time data augmentation for training set
 train = image_generator.flow_from_directory(train_dir,
-                                            batch_size=8,
+                                            batch_size=8,  # Number of images to process at a time / # Images per batch
                                             shuffle=True,
                                             class_mode='binary',
-                                            target_size=(180, 180))
+                                            target_size=(180, 180))  # Resize the images to 180x180 pixels
 
 validation = image_generator.flow_from_directory(val_dir,
                                                 batch_size=1,
@@ -131,3 +131,28 @@ test = image_generator.flow_from_directory(test_dir,
                                             shuffle=False,
                                             class_mode='binary',
                                             target_size=(180, 180))
+
+
+#TODO: Bild wird nicht erstellt
+
+sns.set_style( 'white')  # Set the style for Seaborn plots to 'white', which removes the grid and sets the background to white.
+generated_image, label = train.__getitem__(0)  # Retrieve the first batch of images and their labels from the training dataset.
+plt.imshow(generated_image[0].astype('uint8'), cmap='gray')  # Display the first image in the batch. Convert the pixel values to unsigned 8-bit integers and display in grayscale.
+plt.colorbar()  # Add a color bar to the right side of the image plot, which shows the mapping of pixel values to colors.
+plt.title('Raw Chest X Ray Image')
+
+
+
+print(f"The dimensions of the image are {generated_image.shape[1]} pixels width and {generated_image.shape[2]} pixels height, one single color channel.")
+print(f"The maximum pixel value is {generated_image.max():.4f} and the minimum is {generated_image.min():.4f}")
+print(f"The mean value of the pixels is {generated_image.mean():.4f} and the standard deviation is {generated_image.std():.4f}")
+
+
+
+#TODO: hier ebenso
+sns.histplot(generated_image.ravel(),
+            label=f"Pixel Mean {np.mean(generated_image):.4f} & Standard Deviation {np.std(generated_image):.4f}", kde=False)
+plt.legend(loc='upper center')
+plt.title('Distribution of Pixel Intensities in the Image')
+plt.xlabel('Pixel Intensity')
+plt.ylabel('# Pixels in Image')
