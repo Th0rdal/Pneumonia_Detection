@@ -17,19 +17,19 @@ val_dir = "input/chest_xray/val" #directory der validationdaten
 #Anzahl der Daten in Konsole ausgeben
 print("========================================\nTrain set:")
 num_pneumonia = len(os.listdir(os.path.join(train_dir, 'PNEUMONIA'))) #zählt die anzahl der dateien im gegebenen pfad
-num_normal = len(os.listdir(os.path.join(train_dir, 'NORMAL')))
+num_normal = len(os.listdir(os.path.join(train_dir, 'NORMAL'))) #zählt die anzahl der dateien im gegebenen pfad
 print(f"PNEUMONIA={num_pneumonia}")
 print(f"NORMAL={num_normal}")
 print(" ")
 
 print("========================================\nTest set:")
-print(f"PNEUMONIA={len(os.listdir(os.path.join(test_dir, 'PNEUMONIA')))}")
-print(f"NORMAL={len(os.listdir(os.path.join(test_dir, 'NORMAL')))}")
+print(f"PNEUMONIA={len(os.listdir(os.path.join(test_dir, 'PNEUMONIA')))}") #zählt die anzahl der dateien im gegebenen pfad
+print(f"NORMAL={len(os.listdir(os.path.join(test_dir, 'NORMAL')))}") #zählt die anzahl der dateien im gegebenen pfad
 print(" ")
 
 print("========================================\nValidation set:")
-print(f"PNEUMONIA={len(os.listdir(os.path.join(val_dir, 'PNEUMONIA')))}")
-print(f"NORMAL={len(os.listdir(os.path.join(val_dir, 'NORMAL')))}")
+print(f"PNEUMONIA={len(os.listdir(os.path.join(val_dir, 'PNEUMONIA')))}") #zählt die anzahl der dateien im gegebenen pfad
+print(f"NORMAL={len(os.listdir(os.path.join(val_dir, 'NORMAL')))}") #zählt die anzahl der dateien im gegebenen pfad
 print(" ")
 
 #---------------- Data Visualization: PNEUMONIA -----------------
@@ -38,24 +38,24 @@ pneumonia_dir = "input/chest_xray/train/PNEUMONIA"
 pneumonia_files = [file for file in os.listdir(pneumonia_dir) if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
 # erstellt eine Liste von Filenamen aus dem pneumonia_dir die mit .jpg, .png oder .jpeg enden.
 
-plt.figure(figsize=(20, 10))
-for i in range(min(9, len(pneumonia_files))):  # Limit the loop to the number of image files or 9, whichever is smaller
+plt.figure(figsize=(20, 10)) #plot mit 20x10 wird erstellt
+for i in range(min(9, len(pneumonia_files))):  #maximal 9 bilder werden im Plot angezeigt
     img_path = os.path.join(pneumonia_dir, pneumonia_files[i])
     img = plt.imread(img_path)
     plt.subplot(3, 3, i + 1)
-    plt.imshow(img, cmap='gray')
-    plt.axis('off')
+    plt.imshow(img, cmap='gray') #bilder in graustufen
+    plt.axis('off') #keine achsenbeschriftung
 
-plt.tight_layout()
-plt.show()
+plt.tight_layout() #bilder liegen direkt aneinander an
+plt.show() #plot wird angezeigt
 
 #---------------- Data Visualization: NORMAL -----------------
 
 normal_dir = "input/chest_xray/train/NORMAL"
 normal_files = [file for file in os.listdir(normal_dir) if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
+# erstellt eine Liste von Filenamen aus dem normal_dir die mit .jpg, .png oder .jpeg enden.
 
 plt.figure(figsize=(20, 10))
-
 for i in range(9):
     plt.subplot(3, 3, i + 1)
     img = plt.imread(os.path.join(normal_dir, normal_files[i]))
