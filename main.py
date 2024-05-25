@@ -150,10 +150,10 @@ plt.title('Raw Chest X Ray Image - Preprocessed')
 plt.show()
 
 
+print(f"The dimensions of the image are {generated_image.shape[1]} pixels width and {generated_image.shape[2]} pixels height, one single color channel.")
+print(f"The maximum pixel value is {generated_image.max():.4f} and the minimum is {generated_image.min():.4f}")
+print(f"The mean value of the pixels is {generated_image.mean():.4f} and the standard deviation is {generated_image.std():.4f}\n")
 
-# print(f"The dimensions of the image are {generated_image.shape[1]} pixels width and {generated_image.shape[2]} pixels height, one single color channel.")
-# print(f"The maximum pixel value is {generated_image.max():.4f} and the minimum is {generated_image.min():.4f}")
-# print(f"The mean value of the pixels is {generated_image.mean():.4f} and the standard deviation is {generated_image.std():.4f}\n")
 
 sns.histplot(generated_image.ravel(),
             label=f"Pixel Mean {np.mean(generated_image):.4f} & Standard Deviation {np.std(generated_image):.4f}", kde=False)
@@ -162,3 +162,135 @@ plt.title('Distribution of Pixel Intensities in the Image')
 plt.xlabel('Pixel Intensity')
 plt.ylabel('# Pixels in Image')
 plt.show()
+
+
+#---------------- CNN model -----------------
+
+
+# Klassen-Gewichte berechnen
+weight_for_0 = num_pneumonia / (num_normal + num_pneumonia) # Gewicht für Klasse 0 (Pneumonie)
+weight_for_1 = num_normal / (num_normal + num_pneumonia) # Gewicht für Klasse 1 (Normal)
+
+class_weight = {0: weight_for_0, 1: weight_for_1} # Klassen-Gewichte in einem Dictionary gespeichert für das Training
+
+
+print(f"Weight for class 0: {weight_for_0:.2f}")
+print(f"Weight for class 1: {weight_for_1:.2f}")
+
+
+#---------------- Definition und Kompilierung des CNN-Modells -----------------
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Conv2D, MaxPool2D, Dropout, Flatten, BatchNormalization, Input
+
+
+# Definition des Modells: Ein sequenzielles Modell mit mehreren Schichten
+model = Sequential()
+
+model.add(Input(shape=(180, 180, 3))) # Eingabe-Schicht definieren
+model.add(Conv2D(filters=32, kernel_size=(3, 3), activation='relu')) # Erste Convolution-Schicht
+model.add(BatchNormalization()) # Batch-Normalisierung
+model.add(Conv2D(filters=32, kernel_size=(3, 3), activation='relu')) # Zweite Convolution-Schicht
+model.add(BatchNormalization())
+model.add(MaxPool2D(pool_size=(2, 2)))  # Max-Pooling-Schicht
+
+model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu'))  # Dritte
+model.add(BatchNormalization())
+model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu')) # Vierte
+model.add(BatchNormalization())
+model.add(MaxPool2D(pool_size=(2, 2)))
+
+model.add(Conv2D(filters=128, kernel_size=(3, 3), activation='relu')) # Fünfte
+model.add(BatchNormalization())
+model.add(Conv2D(filters=128, kernel_size=(3, 3), activation='relu')) # Sechste
+model.add(BatchNormalization())
+model.add(MaxPool2D(pool_size=(2, 2)))
+
+model.add(Flatten())  # Mehrdimensionale Ausgabe der letzten Convolution-Schicht in eindimensionalen Vektor umwandeln
+                      # Dies ist notwendig, da die Dense-Schichten eindimensionale Eingaben erwarten.
+model.add(Dense(128, activation='relu'))  # Voll verbundene Schicht mit 128 Neuronen
+model.add(Dropout(0.2)) # Dropout zur Vermeidung von Überanpassung
+
+model.add(Dense(1, activation='sigmoid')) # Ausgabe-Schicht mit einem Neuron und Sigmoid-Aktivierung
+
+model.compile(loss='binary_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+print("\n\n +++ Model Training")
+model.summary()
+
+
+#---------------- Modelltraining -----------------
+
+# Modelltraining durchführen
+r = model.fit(
+    train,  # Trainingsdaten
+    epochs=10,  # Anzahl der Epochen (10 vollständige Durchläufe durch den Trainingsdatensatz)
+    validation_data=validation,  # Validierungsdaten
+    class_weight=class_weight,  # Klassen-Gewichte zum Ausgleich von Klassenungleichgewichten
+    steps_per_epoch=100,  # Anzahl der Schritte pro Epoche
+    validation_steps=25,  # Anzahl der Validierungsschritte pro Epoche
+)
+
+#Epoche: Ein vollständiger Durchlauf des gesamten Trainingsdatensatzes.
+# Das Modell wird über 10 Epochen mit den angegebenen Trainings- und Validierungsdaten trainiert.
+# Die Klassen-Gewichte werden verwendet, um das Ungleichgewicht der Klassen auszugleichen.
+# steps_per_epoch und validation_steps legen fest, wie viele Batch-Schritte pro Epoche und Validierung ausgeführt werden.
+
+
+#---------------- Trainingsergebnisse Visualisieren -----------------
+
+plt.figure(figsize=(12, 8))
+
+# Verlustentwicklung plotten
+plt.subplot(2, 2, 1)
+plt.plot(r.history['loss'], label='Loss')
+plt.plot(r.history['val_loss'], label='Val_Loss')
+plt.legend()
+plt.title('Loss Evolution')
+plt.show()
+
+# Genauigkeitsentwicklung plotten
+plt.subplot(2, 2, 2)
+plt.plot(r.history['accuracy'], label='Accuracy')
+plt.plot(r.history['val_accuracy'], label='Val_Accuracy')
+plt.legend()
+plt.title('Accuracy Evolution')
+plt.show()
+
+
+#---------------- Modellbewertung -----------------
+
+# Testdaten evaluieren
+evaluation = model.evaluate(test)
+print(f"Test Accuracy: {evaluation[1] * 100:.2f}%")
+
+# Trainingsdaten evaluieren
+evaluation = model.evaluate(train)
+print(f"Train Accuracy: {evaluation[1] * 100:.2f}%")
+
+
+
+#---------------- Modellbewertung mit zusätzlichen Metriken -----------------
+
+
+from sklearn.metrics import confusion_matrix, classification_report
+import pandas as pd
+
+# Vorhersagen auf den Testdaten
+pred = model.predict(test)
+
+# Konfusionsmatrix berechnen und ausgeben
+print(confusion_matrix(test.classes, pred > 0.5))
+
+#---------------- Modellbewertung mit Konfusionsmatrix und Klassifikationsbericht -----------------
+
+# Klassifikationsbericht erstellen und als DataFrame anzeigen
+print(confusion_matrix(test.classes, pred > 0.5))
+pd.DataFrame(classification_report(test.classes, pred > 0.5, output_dict=True))
+
+# Konfusionsmatrix mit einem Schwellenwert von 0.7 berechnen und ausgeben
+print(confusion_matrix(test.classes, pred > 0.7))
+# Klassifikationsbericht mit einem Schwellenwert von 0.7 erstellen und als DataFrame anzeigen
+pd.DataFrame(classification_report(test.classes, pred > 0.7, output_dict=True))
