@@ -199,7 +199,7 @@ plt.show() #plot anzeigen
 
 
 
-# stella: kurzer dump an Informationen 
+# stella:  kurzer dump an Informationen 
 
 
 Medical Diagnosis with CNN and Transfer Learning

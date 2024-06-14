@@ -69,7 +69,7 @@ plt.suptitle('Train/Normal', fontsize=32)  # Setzt den Titel der gesamten Figur
 plt.tight_layout(rect=[0, 0, 1, 0.95])  # Passt das Layout an, um Platz für den Suptitel zu schaffen
 plt.show()
 
-#---------------- Data Visualization: SAMPLE IMAGE -----------------
+#---------------- Data Visualization: SAMPLE IMAGE ----------------
 
 #sample image: Hier wird ein Bild als Sample angezeigt
 pic_nr = 15 #Datei die als Sample Image verwendet werden soll
