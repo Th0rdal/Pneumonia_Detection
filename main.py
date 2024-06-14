@@ -164,6 +164,9 @@ plt.ylabel('# Pixels in Image')
 plt.show()
 
 
+
+
+
 #---------------- CNN model -----------------
 
 
@@ -294,3 +297,100 @@ pd.DataFrame(classification_report(test.classes, pred > 0.5, output_dict=True))
 print(confusion_matrix(test.classes, pred > 0.7))
 # Klassifikationsbericht mit einem Schwellenwert von 0.7 erstellen und als DataFrame anzeigen
 pd.DataFrame(classification_report(test.classes, pred > 0.7, output_dict=True))
+
+
+
+
+
+#----------Transfer Learning------------
+#----DenseNET----
+
+from keras.applications.densenet import DenseNet121
+from keras.layers import Dense, GlobalAveragePooling2D
+from keras.models import Model
+from keras import backend as K
+
+# Vortrainiertes DenseNet121-Modell laden, die oberste Schicht ausschließen und Gewichte von ImageNet verwenden
+base_model = DenseNet121(input_shape=(180, 180, 3), include_top=False, weights='imagenet', pooling='avg')
+
+# Architektur des Basismodells anzeigen
+base_model.summary()
+
+# Anzahl der Schichten im Basismodell ausgeben
+layers = base_model.layers
+print(f"\nThe model has {len(layers)} layers")
+
+
+# Eingabe- und Ausgabeformen des Basismodells ausgeben
+print(f"\nThe input shape {base_model.input}")
+print(f"The output shape {base_model.output}\n")
+
+
+# Neues Modell erstellen, indem Schichten zum Basismodell hinzugefügt werden
+#model = Sequential()
+base_model = DenseNet121(include_top=False, weights='imagenet')
+x = base_model.output
+x = GlobalAveragePooling2D()(x) # Global Average Pooling-Schicht hinzufügen
+predictions = Dense(1, activation="sigmoid")(x) # Dense-Schicht mit Sigmoid-Aktivierung für binäre Klassifikation hinzufügen
+
+# Das vollständige Modell definieren
+model = Model(inputs=base_model.input, outputs=predictions)
+#model.add(base_model)
+#model.add(GlobalAveragePooling2D())
+#model.add(Dense(1, activation='sigmoid'))
+
+# Modell mit binary_crossentropy Verlust, Adam Optimierer und Genauigkeitsmetrik kompilieren
+model.compile(loss='binary_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+# Modell mit Trainingsdaten trainieren, Klassen-Gewichte und Validierungsdaten verwenden
+
+# Modell mit Trainingsdaten trainieren, Klassen-Gewichte und Validierungsdaten verwenden
+r = model.fit(
+    train,
+    epochs=10,
+    validation_data=validation,
+    class_weight=class_weight,
+    steps_per_epoch=100,
+    validation_steps=25,
+)
+
+
+# Trainingsergebnisse plotten
+plt.figure(figsize=(12, 8))
+
+# Verlustentwicklung plotten
+plt.subplot(2, 2, 1)
+plt.plot(r.history['loss'], label='Loss')
+plt.plot(r.history['val_loss'], label='Val_Loss')
+plt.legend()
+plt.title('Loss Evolution')
+plt.show()
+
+# Genauigkeitsentwicklung plotten
+plt.subplot(2, 2, 2)
+plt.plot(r.history['accuracy'], label='Accuracy')
+plt.plot(r.history['val_accuracy'], label='Val_Accuracy')
+plt.legend()
+plt.title('Accuracy Evolution')
+plt.show()
+
+
+# Modell mit den Testdaten evaluieren
+evaluation = model.evaluate(test)
+print(f"\nTest Accuracy: {evaluation[1] * 100:.2f}%")
+
+# Modell mit den Trainingsdaten evaluieren
+evaluation = model.evaluate(train)
+print(f"Train Accuracy: {evaluation[1] * 100:.2f}%")
+
+
+
+#--------Evaluation----------
+predicted_vals = model.predict(test, steps=len(test))
+
+print(confusion_matrix(test.classes, predicted_vals > 0.5))
+pd.DataFrame(classification_report(test.classes, predicted_vals > 0.5, output_dict=True))
+
+

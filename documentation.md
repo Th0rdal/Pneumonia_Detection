@@ -190,3 +190,26 @@ plt.xlim(0, 255)  #begrenzung der x-Werte auf 0 - 255 (Graustufen)
 plt.show() #plot anzeigen
 ```
 
+
+
+
+
+
+
+
+
+
+# stella: kurzer dump an Informationen 
+
+
+Medical Diagnosis with CNN and Transfer Learning
+
+The code below implements two distinct models for medical image classification using Convolutional Neural Networks (CNN) and transfer learning with DenseNet121. The goal is to train and evaluate these models on chest X-ray images to classify them into categories such as PNEUMONIA and NORMAL. The task involves configuring various hyperparameters and experimenting with different network architectures.
+
+Model 1: Custom CNN Model
+
+This model is built from scratch using a sequential approach with several convolutional layers, batch normalization, max-pooling layers, and dense layers with dropout for regularization.
+
+Model 2: Transfer Learning with DenseNet121
+
+This model leverages transfer learning by utilizing a pre-trained DenseNet121 model. We add a global average pooling layer and a dense layer with sigmoid activation to customize it for our binary classification task.
