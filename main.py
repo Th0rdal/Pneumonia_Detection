@@ -36,8 +36,9 @@ class ReadDataset:
         labels = np.array(labels)
         return images, labels
 
-readDatasetObject = ReadDataset('/input/chest-xray-pneumonia/chest_xray/train',
+readDatasetObject = ReadDataset('input/chest_xray/train',
                                     ['NORMAL', 'PNEUMONIA'],
                                     (64, 64)) #180 x 180 eigentlich bei unserem Recognition Model
 images, labels = readDatasetObject.readImages()
-images.shape, labels.shape
+print(f'Images: Amount={images.shape[0]}, {images.shape[1]}x{images.shape[2]}, Channels={images.shape[3]}')
+print(f'Labels: Amount={labels.shape[0]}')
