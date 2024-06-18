@@ -192,7 +192,7 @@ class Acgan:
                 self.samples(G, noize, fakeLabels)
 
 
-acgan = Acgan(eta=0.0001, batch_size=32, epochs=100, weight_decay=6e-9, latent_space=100, image_shape=(64, 64, 3), kernel_size=5)
+acgan = Acgan(eta=0.0001, batch_size=32, epochs=200, weight_decay=6e-9, latent_space=100, image_shape=(64, 64, 3), kernel_size=5)
 # standardmäßig: 32000 Epochs
 
 acgan.data(images, labels)
@@ -204,4 +204,26 @@ G, D, GAN = acgan.build()
 # tf.keras.utils.plot_model(G, show_shapes = True)
 
 acgan.trainAlgorithm(G, D, GAN)
+G.save('/kaggle/working/generator.h5')
+
+#------------------------------ GENERIEREN von Bildern, mit dem Model ------------------------------
+
+datasetGenerationSize = 30000
+noize = tf.random.uniform(shape = (datasetGenerationSize, 100), minval = -1, maxval = 1)
+newlabels = tf.keras.utils.to_categorical(np.random.choice([0, 1], size = (datasetGenerationSize, )), num_classes = 2)
+
+noize.shape, newlabels.shape
+
+np.unique(np.argmax(newlabels, axis = 1), return_counts = True)
+
+imagesGeneration = G.predict([noize, newlabels])
+imagesGeneration.shape
+
+plt.figure(figsize = (12, 12))
+t = np.argmax(newlabels, axis = 1)
+for i in range(64):
+    plt.subplot(8, 8, (i + 1))
+    plt.imshow(imagesGeneration[i])
+    plt.title(t[i])
+plt.show()
 
