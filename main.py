@@ -131,52 +131,69 @@ class Acgan:
         self.discriminatorModel = models.Model(inputs = inputs,
                                                outputs = [outputs, labelsOutput],
                                                name = 'discriminator')
-    def build(self,):
-        generatorInput = layers.Input(shape=(self.latent_space,))  # Korrigiert: Tupel (100,)
-        discriminatorInput = layers.Input(shape = (self.image_shape))
-        labelsInput = layers.Input(shape = (2, ))
+
+    def build(self):
+        generatorInput = layers.Input(shape=(self.latent_space,))
+        discriminatorInput = layers.Input(shape=self.image_shape)
+        labelsInput = layers.Input(shape=(2,))
+
         self.generator(generatorInput, labelsInput)
         self.discriminator(discriminatorInput)
+
         G = self.generatorModel
         D = self.discriminatorModel
-        D.compile(loss = ['mse', 'binary_crossentropy'],
-                 optimizer = tf.keras.optimizers.RMSprop(learning_rate = self.eta,
-                                                        weight_decay = self.weight_decay))
+
+        # Diskriminator muss trainierbar sein
+        D.trainable = True
+        D.compile(loss=['mse', 'binary_crossentropy'],
+                  optimizer=tf.keras.optimizers.RMSprop(learning_rate=self.eta,
+                                                        weight_decay=self.weight_decay))
         D.summary()
         G.summary()
+
         D.trainable = False
-        GAN = models.Model(inputs = [generatorInput, labelsInput],
-                           outputs = D(G([generatorInput, labelsInput])))
-        GAN.compile(loss = ['mse', 'binary_crossentropy'],
-                   optimizer = tf.keras.optimizers.RMSprop(learning_rate = self.eta*0.5,
-                                                          weight_decay = self.weight_decay*0.5))
+        GAN = models.Model(inputs=[generatorInput, labelsInput],
+                           outputs=D(G([generatorInput, labelsInput])))
+        GAN.compile(loss=['mse', 'binary_crossentropy'],
+                    optimizer=tf.keras.optimizers.RMSprop(learning_rate=self.eta * 0.5,
+                                                          weight_decay=self.weight_decay * 0.5))
         GAN.summary()
         return G, D, GAN
+
     def trainAlgorithm(self, G, D, GAN):
         for epoch in range(self.epochs):
-            indexs = np.random.randint(0, len(self.images), size = (self.batch_size, ))
+            indexs = np.random.randint(0, len(self.images), size=self.batch_size)
             realImages = self.images[indexs]
             realLabels = self.labels[indexs]
-            realTag = tf.ones(shape = (self.batch_size, ))
-            noize = tf.random.uniform(shape = (self.batch_size, self.latent_space), minval = -1, maxval = 1)
-            fakeLabels = tf.keras.utils.to_categorical(np.random.choice(range(2), size = (self.batch_size)), num_classes = 2)
-            fakeImages = tf.squeeze(G.predict([noize, fakeLabels], verbose = 0))
-            fakeTag = tf.zeros(shape = (self.batch_size, ))
+            realTag = tf.ones(shape=(self.batch_size,))
+
+            noize = tf.random.uniform(shape=(self.batch_size, self.latent_space), minval=-1, maxval=1)
+            fakeLabels = tf.keras.utils.to_categorical(np.random.choice(range(2), size=self.batch_size), num_classes=2)
+            fakeImages = tf.squeeze(G.predict([noize, fakeLabels], verbose=0))
+            fakeTag = tf.zeros(shape=(self.batch_size,))
+
             allImages = np.vstack([realImages, fakeImages])
             allLabels = np.vstack([realLabels, fakeLabels])
             allTags = np.hstack([realTag, fakeTag])
-            _, dlossTag, dlossLabels = D.train_on_batch(allImages, [allTags, allLabels])
-            noize = tf.random.uniform(shape = (self.batch_size, self.latent_space), minval = -1, maxval = 1)
-            _, glossTag, glossLabels = GAN.train_on_batch([noize, fakeLabels], [realTag, fakeLabels])
-            if epoch % 5000 == 0:
-                print('Epoch: {}'.format(epoch))
-                print('discriminator loss: [tag: {}, labels: {}], generator loss: [tag: {}, labels: {}]'.format(dlossTag,
-                                                                                                                dlossLabels,
-                                                                                                                glossTag,
-                                                                                                                glossLabels))
+
+            # Diskriminator muss trainierbar sein
+            D.trainable = True
+            d_loss = D.train_on_batch(allImages, [allTags, allLabels])
+
+            noize = tf.random.uniform(shape=(self.batch_size, self.latent_space), minval=-1, maxval=1)
+
+            # GAN trainieren (Diskriminator nicht trainierbar)
+            D.trainable = False
+            g_loss = GAN.train_on_batch([noize, fakeLabels], [realTag, fakeLabels])
+
+            if epoch % 10 == 0: #5000
+                print(f'Epoch: {epoch}')
+                print(f'discriminator loss: {d_loss}, generator loss: {g_loss}')
                 self.samples(G, noize, fakeLabels)
 
-acgan = Acgan(eta=0.0001, batch_size=32, epochs=32000, weight_decay=6e-9, latent_space=100, image_shape=(64, 64, 3), kernel_size=5)
+
+acgan = Acgan(eta=0.0001, batch_size=32, epochs=100, weight_decay=6e-9, latent_space=100, image_shape=(64, 64, 3), kernel_size=5)
+# standardmäßig: 32000 Epochs
 
 acgan.data(images, labels)
 
@@ -187,3 +204,4 @@ G, D, GAN = acgan.build()
 # tf.keras.utils.plot_model(G, show_shapes = True)
 
 acgan.trainAlgorithm(G, D, GAN)
+
