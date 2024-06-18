@@ -47,3 +47,18 @@ def readImages(self):
 * Das Bild wird mit cv2.cvtColor von BGR (Standardformat von OpenCV) zu RGB konvertiert
   * wird benötigt um Probleme mit TensorFlow, Keras, Matplotlib zu vermeiden, diese verwenden RGB, laut GPT
 * Die Pixelwerte des Bildes werden durch 255 geteilt, um sie auf den Bereich 0 bis 1 zu normalisieren
+
+### 1.3 Show example Pictures
+```python
+plt.figure(figsize = (12, 12))
+indexs = np.random.randint(0, len(labels), size = (64, ))
+for i in range(64):
+    plt.subplot(8, 8, (i + 1))
+    plt.imshow(images[indexs[i]])
+    plt.title(labels[indexs[i]])
+plt.tight_layout()  # Optional: automatic tight Layout for better space usage
+plt.show()  # show the generated plot
+```
+* Plot mit 12 x  12 Zoll
+* 64 Random Images werden verwendet zum anzeigen
+
