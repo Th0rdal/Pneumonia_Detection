@@ -8,6 +8,7 @@ import tensorflow
 from keras.layers import GlobalAveragePooling2D
 from keras.models import Model
 from keras.src.applications import DenseNet121
+from keras.src.optimizers import Adam
 from sklearn.metrics import confusion_matrix, classification_report
 from tensorflow.keras.layers import Dense
 from tensorflow.python.keras.callbacks import History
@@ -18,10 +19,10 @@ import global_var
 
 #----------transfer Learning------------
 #----DenseNET----
-def configDenseNet121Model():
+def configDenseNet121Model(name="cnnModel", epoch=10, stepsPerEpoch=100, learningRate=0.001):
     print("DenseNet121 model:")
 
-    if global_var.retrain:
+    if global_var.retrain or not os.path.exists(global_var.pathToDenseNetModel + name):
         # load pre-trained DenseNet121-model, omitting the highest layer and use weights from ImageNet
         base_model = DenseNet121(input_shape=(180, 180, 3), include_top=False, weights='imagenet', pooling='avg')
 
@@ -52,31 +53,34 @@ def configDenseNet121Model():
         # model.add(Dense(1, activation='sigmoid'))
 
         # model of binary cross entropy loss, adam optimizer and compile accuracy matrix
+        optimizer = Adam(learning_rate=learningRate)
         model.compile(loss='binary_crossentropy',
-                      optimizer='adam',
+                      optimizer=optimizer,
                       metrics=['accuracy'])
 
         # model trained with training data, class weights and validation data used
 
         r = model.fit(
             global_var.train,
-            epochs=10,
+            epochs=epoch,
             validation_data=global_var.validation,
             class_weight=global_var.class_weight,
-            steps_per_epoch=100,
+            steps_per_epoch=stepsPerEpoch,
             validation_steps=25,
         )
 
         # Clear the directory if it exists
-        if os.path.exists(global_var.pathToDenseNetModel):
-            shutil.rmtree(global_var.pathToDenseNetModel)
+        if os.path.exists(global_var.pathToDenseNetModel + name):
+            shutil.rmtree(global_var.pathToDenseNetModel + name)
+        else:
+            os.makedirs(global_var.pathToDenseNetModel + name, exist_ok=True)
 
-        model.save(global_var.pathToDenseNetModel)
-        with open(global_var.denseNetModelJson, "w") as f:
+        model.save(global_var.pathToDenseNetModel + name)
+        with open(global_var.pathToDenseNetModel+name+"/trainingHistory.json", "w") as f:
             json.dump(r.history, f)
     else:
-        model = tensorflow.keras.models.load_model(global_var.pathToDenseNetModel)
-        with open(global_var.denseNetModelJson, "rb") as f:
+        model = tensorflow.keras.models.load_model(global_var.pathToDenseNetModel + name)
+        with open(global_var.pathToDenseNetModel+name+"/trainingHistory.json", "rb") as f:
             history_data = json.load(f)
         r = History()
         r.history = history_data

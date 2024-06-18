@@ -124,7 +124,6 @@ def baseTrainingResultVisualization(r, model):
     plt.show()
 
     #---------------- model evaluation -----------------
-
     # evaluate test data
     evaluation = model.evaluate(global_var.test)
     print(f"Test Accuracy: {evaluation[1] * 100:.2f}%")

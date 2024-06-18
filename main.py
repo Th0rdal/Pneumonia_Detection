@@ -9,9 +9,9 @@ import argparse
 import global_var
 
 parser = argparse.ArgumentParser(description="A programm that trains a CNN model and a pre trained denseNet121 model on pneumonia x-rays")
-parser.add_argument('--detailed_models', action='store_true', help="Give detailed summary on the models")
+parser.add_argument('--detailed_models', action='store_true', help="Give a detailed summary on the models")
 parser.add_argument('--retrain', action='store_true', help="Retrain models")
-parser.add_argument('--gradCAM', type=str, nargs='?', const='', default=None, help="Use gradient CAM")
+parser.add_argument('--gradCAM', type=str, nargs='?', const='', default=None, help="Use gradient CAM. Optionally add image path")
 args = parser.parse_args()
 global_var.detailedSummaryFlag = args.detailed_models
 global_var.retrain = args.retrain
@@ -33,7 +33,7 @@ imagePreProcessing()
 
 print("")
 
-configCNNModel()
+configCNNModel("cnnModel4", epoch=20, stepsPerEpoch=100, learningRate=0.001)
 
 print("")
-configDenseNet121Model()
+configDenseNet121Model("denseNet121Model4", epoch=20, stepsPerEpoch=100, learningRate=0.001)

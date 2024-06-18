@@ -8,10 +8,8 @@ test_dir = "resources/input/chest_xray/test"  # folder test data
 val_dir = "resources/input/chest_xray/val"  # folder validation data
 pneumonia_dir = "resources/input/chest_xray/train/PNEUMONIA"
 normal_dir = "resources/input/chest_xray/train/NORMAL"
-pathToCNNModel = "resources/model/cnnModel"
-pathToDenseNetModel = "resources/model/denseNetModel"
-cnnModelJson = pathToCNNModel + "/trainingHistory.json"
-denseNetModelJson = pathToDenseNetModel + "/trainingHistory.json"
+pathToCNNModel = "resources/model/cnnModel/"
+pathToDenseNetModel = "resources/model/denseNetModel/"
 
 num_pneumonia = len(os.listdir(os.path.join(train_dir, 'PNEUMONIA')))  # counts amount of files in given path
 num_normal = len(os.listdir(os.path.join(train_dir, 'NORMAL')))  # counts amount of files in given path

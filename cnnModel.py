@@ -4,6 +4,7 @@ import shutil
 
 import pandas as pd
 import tensorflow
+from keras.src.optimizers import Adam
 from sklearn.metrics import confusion_matrix, classification_report
 from tensorflow.keras.layers import Dense, Conv2D, MaxPool2D, Dropout, Flatten, BatchNormalization, Input
 from tensorflow.keras.models import Sequential
@@ -14,11 +15,11 @@ import global_var
 
 
 #---------------- CNN model -----------------
-def configCNNModel():
+def configCNNModel(name="cnnModel", epoch=10, stepsPerEpoch=100, learningRate=0.001):
     print("CNN model:")
 
     #---------------- definition and compilation of the CNN-model -----------------
-    if global_var.retrain:
+    if global_var.retrain or not os.path.exists(global_var.pathToCNNModel + name):
         # definition of the model: a sequential model with multiple layers
         model = Sequential()
 
@@ -48,8 +49,9 @@ def configCNNModel():
 
         model.add(Dense(1, activation='sigmoid'))  # output layer with one neuron and sigmoid activation function
 
+        optimizer = Adam(learning_rate=learningRate)
         model.compile(loss='binary_crossentropy',
-                      optimizer='adam',
+                      optimizer=optimizer,
                       metrics=['accuracy'])
 
         if global_var.detailedSummaryFlag:
@@ -60,23 +62,25 @@ def configCNNModel():
         # perform training
         r = model.fit(
             global_var.train,  # trainings data
-            epochs=10,  # amount of epochs (10 full passes through trainings data)
+            epochs=epoch,  # amount of epochs (10 full passes through trainings data)
             validation_data=global_var.validation,  # validation data
             class_weight=global_var.class_weight,  # class weights to compensate for class imbalance
-            steps_per_epoch=100,  # amount of steps per epoch
+            steps_per_epoch=stepsPerEpoch,  # amount of steps per epoch
             validation_steps=25,  # amount of steps for validation steps per epoch
         )
 
         # Clear the directory if it exists
-        if os.path.exists(global_var.pathToCNNModel):
-            shutil.rmtree(global_var.pathToCNNModel)
+        if os.path.exists(global_var.pathToCNNModel + name):
+            shutil.rmtree(global_var.pathToCNNModel + name)
+        else:
+            os.makedirs(global_var.pathToCNNModel + name, exist_ok=True)
 
-        model.save(global_var.pathToCNNModel)
-        with open(global_var.cnnModelJson, "w") as f:
+        model.save(global_var.pathToCNNModel + name)
+        with open(global_var.pathToCNNModel+name+"/trainingHistory.json", "w") as f:
             json.dump(r.history, f)
     else:
-        model = tensorflow.keras.models.load_model(global_var.pathToCNNModel)
-        with open(global_var.cnnModelJson, "rb") as f:
+        model = tensorflow.keras.models.load_model(global_var.pathToCNNModel + name)
+        with open(global_var.pathToCNNModel+name+"/trainingHistory.json", "rb") as f:
             history_data = json.load(f)
         r = History()
         r.history = history_data
