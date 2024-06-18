@@ -1,8 +1,14 @@
 import os
 
+os.environ["KERAS_BACKEND"] = "tensorflow"
+import keras
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+import tensorflow
+import tensorflow as tf
+from IPython.display import Image, display
 import global_var
 
 
@@ -67,7 +73,7 @@ def dataVisualization():
 
     # sampe image: shows picture as sample
     pic_nr = 15  # file that should be used as sample image
-    pic_path = "input/chest_xray/train/NORMAL"
+    pic_path = "resources/input/chest_xray/train/NORMAL"
     normal_img = os.listdir(pic_path)[pic_nr]
     sample_img = plt.imread(os.path.join(global_var.normal_dir, normal_img))
     plt.imshow(sample_img, cmap='gray')  # show image in greyscale
@@ -126,3 +132,77 @@ def baseTrainingResultVisualization(r, model):
     # evaluate training data
     evaluation = model.evaluate(global_var.train)
     print(f"Train Accuracy: {evaluation[1] * 100:.2f}%")
+
+
+def visualizeGradCAM(model, name="", path=None, pred_index=None):
+    if path is None or path == "":
+        path = "resources/input/chest_xray/test/NORMAL/IM-0001-0001.jpeg"
+
+    model.summary()
+    layer = input("Enter the layer you want to create the gradCAM for: ")
+
+    preprocess_input = keras.applications.xception.preprocess_input
+
+    model.layers[-1].activation = None
+
+    # Load and preprocess the image
+    img_path = path
+    img = keras.utils.load_img(img_path, target_size=(180, 180))
+    array = keras.utils.img_to_array(img)
+
+    array = np.expand_dims(array, axis=0)
+    array = preprocess_input(array)
+
+    preds = model.predict(array)
+    preds = np.array(preds)  # Convert to NumPy array if not already
+    preds = preds.reshape((1, -1))
+    print("Raw prediction:", preds)
+
+    grad_model = keras.models.Model(
+        model.inputs, [model.get_layer(layer).output, model.output]
+    )
+
+    # Compute the gradient of the class output with respect to the feature map
+    with tf.GradientTape() as tape:
+        last_conv_layer_output, preds = grad_model(array)
+        if pred_index is None:
+            pred_index = tensorflow.argmax(preds[0])
+        class_channel = preds[:, pred_index]
+
+    # Gradient of the output neuron with respect to the output feature map
+    grads = tape.gradient(class_channel, last_conv_layer_output)
+
+    # Compute the mean intensity of the gradients over all the filters
+    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
+
+    # Multiply each channel in the feature map array by the importance of the channel
+    last_conv_layer_output = last_conv_layer_output[0]
+    heatmap = last_conv_layer_output @ pooled_grads[..., tf.newaxis]
+    heatmap = tf.squeeze(heatmap)
+
+    # Apply ReLU to the heatmap
+    heatmap = tf.maximum(heatmap, 0) / tf.math.reduce_max(heatmap)
+    heatmap = heatmap.numpy()
+
+    # Display the heatmap
+    plt.matshow(heatmap)
+    plt.title("Heatmap " + name)
+    plt.show()
+
+    # Superimpose the heatmap on the original image
+    heatmap = np.uint8(255 * heatmap)
+    jet = mpl.colormaps["jet"]
+    jet_colors = jet(np.arange(256))[:, :3]
+    jet_heatmap = jet_colors[heatmap]
+
+    jet_heatmap = keras.utils.array_to_img(jet_heatmap)
+    jet_heatmap = jet_heatmap.resize((180, 180))
+    jet_heatmap = keras.utils.img_to_array(jet_heatmap)
+
+    superimposed_img = jet_heatmap * 0.4 + img
+    superimposed_img = keras.utils.array_to_img(superimposed_img)
+
+    plt.imshow(superimposed_img)
+    plt.title("Superimposed Image " + name)
+    plt.axis('off')
+    plt.show()

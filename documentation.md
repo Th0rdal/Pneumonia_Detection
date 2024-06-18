@@ -25,10 +25,11 @@ print(" ")
 
 ### Code Block 2 ###
 Dieser Code Block zeigt die ersten 9 Bilder vom Pfad `input/chest_xray/train/PNEUMONIA` an in einem Plot an.
+
 ```python
 #---------------- Data Visualization: PNEUMONIA -----------------
 
-pneumonia_dir = "input/chest_xray/train/PNEUMONIA"
+pneumonia_dir = "resources/input/chest_xray/train/PNEUMONIA"
 pneumonia_files = [file for file in os.listdir(pneumonia_dir) if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
 
 plt.figure(figsize=(20, 10))
@@ -105,7 +106,7 @@ Mit diesem Code wird ein Sample Picture angezeigt von dem im nächsten Code Bloc
 ```python
 #sample image, image
 pic_nr = 15
-pic_path = "input/chest_xray/train/NORMAL"
+pic_path = "resources/input/chest_xray/train/NORMAL"
 normal_img = os.listdir(pic_path)[pic_nr]
 sample_img = plt.imread(os.path.join(normal_dir, normal_img))
 plt.imshow(sample_img, cmap='gray')
@@ -119,9 +120,10 @@ print(f"The mean value of the pixels is {sample_img.mean():.4f} and the standard
 ```
 
 1) Sample Image auslesen
+
 ```python
 pic_nr = 15
-pic_path = "input/chest_xray/train/NORMAL"
+pic_path = "resources/input/chest_xray/train/NORMAL"
 normal_img = os.listdir(pic_path)[pic_nr]
 sample_img = plt.imread(os.path.join(normal_dir, normal_img))
 ```

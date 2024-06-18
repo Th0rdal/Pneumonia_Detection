@@ -1,62 +1,88 @@
+import json
+import os
+import shutil
+
 import pandas as pd
+import tensorflow
 
 from keras.layers import GlobalAveragePooling2D
 from keras.models import Model
 from keras.src.applications import DenseNet121
 from sklearn.metrics import confusion_matrix, classification_report
 from tensorflow.keras.layers import Dense
+from tensorflow.python.keras.callbacks import History
 
-from visualization import baseTrainingResultVisualization
+from visualization import baseTrainingResultVisualization, visualizeGradCAM
 import global_var
 
 
 #----------transfer Learning------------
 #----DenseNET----
 def configDenseNet121Model():
-    # load pre-trained DenseNet121-model, omitting the highest layer and use weights from ImageNet
-    base_model = DenseNet121(input_shape=(180, 180, 3), include_top=False, weights='imagenet', pooling='avg')
+    print("DenseNet121 model:")
 
-    # display architecture of basemodel
-    if global_var.detailedSummaryFlag:
-        base_model.summary()
+    if global_var.retrain:
+        # load pre-trained DenseNet121-model, omitting the highest layer and use weights from ImageNet
+        base_model = DenseNet121(input_shape=(180, 180, 3), include_top=False, weights='imagenet', pooling='avg')
 
-    # output amount of layers in basemodel
-    layers = base_model.layers
-    print(f"\nThe model has {len(layers)} layers")
+        # display architecture of basemodel
+        if global_var.detailedSummaryFlag:
+            base_model.summary()
 
-    # output input and output form of the basemodel
-    print(f"\nThe input shape {base_model.input}")
-    print(f"The output shape {base_model.output}\n")
+        # output amount of layers in basemodel
+        layers = base_model.layers
+        print(f"\nThe model has {len(layers)} layers")
 
-    # create new model by adding layers to the basemodel
-    # model = Sequential()
-    base_model = DenseNet121(include_top=False, weights='imagenet')
-    x = base_model.output
-    x = GlobalAveragePooling2D()(x)  # Global Average Pooling-Schicht hinzufügen
-    predictions = Dense(1, activation="sigmoid")(
-        x)  # Dense-Schicht mit Sigmoid-Aktivierung für binäre Klassifikation hinzufügen
+        # output input and output form of the basemodel
+        print(f"\nThe input shape {base_model.input}")
+        print(f"The output shape {base_model.output}\n")
 
-    # the full model defined
-    model = Model(inputs=base_model.input, outputs=predictions)
-    # model.add(base_model)
-    # model.add(GlobalAveragePooling2D())
-    # model.add(Dense(1, activation='sigmoid'))
+        # create new model by adding layers to the basemodel
+        # model = Sequential()
+        base_model = DenseNet121(include_top=False, weights='imagenet')
+        x = base_model.output
+        x = GlobalAveragePooling2D()(x)  # Global Average Pooling-Schicht hinzufügen
+        predictions = Dense(1, activation="sigmoid")(
+            x)  # Dense-Schicht mit Sigmoid-Aktivierung für binäre Klassifikation hinzufügen
 
-    # model of binary cross entropy loss, adam optimizer and compile accuracy matrix
-    model.compile(loss='binary_crossentropy',
-                  optimizer='adam',
-                  metrics=['accuracy'])
+        # the full model defined
+        model = Model(inputs=base_model.input, outputs=predictions)
+        # model.add(base_model)
+        # model.add(GlobalAveragePooling2D())
+        # model.add(Dense(1, activation='sigmoid'))
 
-    # model trained with training data, class weights and validation data used
+        # model of binary cross entropy loss, adam optimizer and compile accuracy matrix
+        model.compile(loss='binary_crossentropy',
+                      optimizer='adam',
+                      metrics=['accuracy'])
 
-    r = model.fit(
-        global_var.train,
-        epochs=10,
-        validation_data=global_var.validation,
-        class_weight=global_var.class_weight,
-        steps_per_epoch=100,
-        validation_steps=25,
-    )
+        # model trained with training data, class weights and validation data used
+
+        r = model.fit(
+            global_var.train,
+            epochs=10,
+            validation_data=global_var.validation,
+            class_weight=global_var.class_weight,
+            steps_per_epoch=100,
+            validation_steps=25,
+        )
+
+        # Clear the directory if it exists
+        if os.path.exists(global_var.pathToDenseNetModel):
+            shutil.rmtree(global_var.pathToDenseNetModel)
+
+        model.save(global_var.pathToDenseNetModel)
+        with open(global_var.denseNetModelJson, "w") as f:
+            json.dump(r.history, f)
+    else:
+        model = tensorflow.keras.models.load_model(global_var.pathToDenseNetModel)
+        with open(global_var.denseNetModelJson, "rb") as f:
+            history_data = json.load(f)
+        r = History()
+        r.history = history_data
+
+        if global_var.detailedSummaryFlag:
+            model.summary()
 
     evaluationDenseNet121Model(r, model)
 
