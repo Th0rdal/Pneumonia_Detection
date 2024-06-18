@@ -27,9 +27,9 @@ print(" ")
 Dieser Code Block zeigt die ersten 9 Bilder vom Pfad `input/chest_xray/train/PNEUMONIA` an in einem Plot an.
 
 ```python
-#---------------- Data Visualization: PNEUMONIA -----------------
+# ---------------- Data Visualization: PNEUMONIA -----------------
 
-pneumonia_dir = "resources/input/chest_xray/train/PNEUMONIA"
+pneumonia_dir = "../resources/input/chest_xray/train/PNEUMONIA"
 pneumonia_files = [file for file in os.listdir(pneumonia_dir) if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
 
 plt.figure(figsize=(20, 10))

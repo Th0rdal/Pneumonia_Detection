@@ -1,0 +1,5 @@
+kera==2.13.1
+tensorflow==2.13.1
+matplotlib
+seaborn
+scikit-learn

@@ -8,7 +8,7 @@ import numpy as np
 import seaborn as sns
 import tensorflow
 import tensorflow as tf
-from IPython.display import Image, display
+
 import global_var
 
 
