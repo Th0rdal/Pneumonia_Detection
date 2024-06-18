@@ -18,7 +18,7 @@ def configCNNModel():
     print("CNN model:")
 
     #---------------- definition and compilation of the CNN-model -----------------
-    if True:#global_var.retrain:
+    if global_var.retrain:
         # definition of the model: a sequential model with multiple layers
         model = Sequential()
 
