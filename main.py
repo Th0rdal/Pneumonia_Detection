@@ -44,7 +44,7 @@ class ReadDataset:
 
 readDatasetObject = ReadDataset('input/chest_xray/train',
                                     ['NORMAL', 'PNEUMONIA'],
-                                    (60, 60)) #180 x 180 eigentlich bei unserem Recognition Model
+                                    (64, 64)) #180 x 180 eigentlich bei unserem Recognition Model
 images, labels = readDatasetObject.readImages()
 print(f'Images: Amount={images.shape[0]}, {images.shape[1]}x{images.shape[2]}, Channels={images.shape[3]}')
 print(f'Labels: Amount={labels.shape[0]}')
@@ -154,36 +154,26 @@ class Acgan:
         return G, D, GAN
     def trainAlgorithm(self, G, D, GAN):
         for epoch in range(self.epochs):
-            indexs = np.random.randint(0, len(self.images), size=(self.batch_size,))
+            indexs = np.random.randint(0, len(self.images), size = (self.batch_size, ))
             realImages = self.images[indexs]
             realLabels = self.labels[indexs]
-            realTag = tf.ones(shape=(self.batch_size,))
-            noize = tf.random.uniform(shape=(self.batch_size, self.latent_space), minval=-1, maxval=1)
-            fakeLabels = tf.keras.utils.to_categorical(np.random.choice(range(2), size=(self.batch_size)),
-                                                       num_classes=2)
-            fakeImages = tf.squeeze(G.predict([noize, fakeLabels], verbose=0))
-
-            # Resize real and fake images to the same size
-            realImages_resized = tf.image.resize(realImages, (self.image_shape[0], self.image_shape[1]))
-            fakeImages_resized = tf.image.resize(fakeImages, (self.image_shape[0], self.image_shape[1]))
-
-            fakeTag = tf.zeros(shape=(self.batch_size,))
-            allImages = np.vstack([realImages_resized, fakeImages_resized])
+            realTag = tf.ones(shape = (self.batch_size, ))
+            noize = tf.random.uniform(shape = (self.batch_size, self.latent_space), minval = -1, maxval = 1)
+            fakeLabels = tf.keras.utils.to_categorical(np.random.choice(range(2), size = (self.batch_size)), num_classes = 2)
+            fakeImages = tf.squeeze(G.predict([noize, fakeLabels], verbose = 0))
+            fakeTag = tf.zeros(shape = (self.batch_size, ))
+            allImages = np.vstack([realImages, fakeImages])
             allLabels = np.vstack([realLabels, fakeLabels])
             allTags = np.hstack([realTag, fakeTag])
-
-            print(f'Epoch: {epoch}, allImages.shape: {allImages.shape}, allLabels.shape: {allLabels.shape}, allTags.shape: {allTags.shape}')
-
             _, dlossTag, dlossLabels = D.train_on_batch(allImages, [allTags, allLabels])
-            noize = tf.random.uniform(shape=(self.batch_size, self.latent_space), minval=-1, maxval=1)
+            noize = tf.random.uniform(shape = (self.batch_size, self.latent_space), minval = -1, maxval = 1)
             _, glossTag, glossLabels = GAN.train_on_batch([noize, fakeLabels], [realTag, fakeLabels])
             if epoch % 5000 == 0:
                 print('Epoch: {}'.format(epoch))
-                print(
-                    'discriminator loss: [tag: {}, labels: {}], generator loss: [tag: {}, labels: {}]'.format(dlossTag,
-                                                                                                              dlossLabels,
-                                                                                                              glossTag,
-                                                                                                              glossLabels))
+                print('discriminator loss: [tag: {}, labels: {}], generator loss: [tag: {}, labels: {}]'.format(dlossTag,
+                                                                                                                dlossLabels,
+                                                                                                                glossTag,
+                                                                                                                glossLabels))
                 self.samples(G, noize, fakeLabels)
 
 acgan = Acgan(eta=0.0001, batch_size=32, epochs=32000, weight_decay=6e-9, latent_space=100, image_shape=(64, 64, 3), kernel_size=5)
@@ -191,5 +181,9 @@ acgan = Acgan(eta=0.0001, batch_size=32, epochs=32000, weight_decay=6e-9, latent
 acgan.data(images, labels)
 
 G, D, GAN = acgan.build()
+
+# tf.keras.utils.plot_model(GAN, show_shapes = True)
+# tf.keras.utils.plot_model(D, show_shapes = True)
+# tf.keras.utils.plot_model(G, show_shapes = True)
 
 acgan.trainAlgorithm(G, D, GAN)
