@@ -1,0 +1,14 @@
+
+This program trains different Models on recognizing pneumonia from x-ray images.
+
+INSTALLATION:
+A valid python version using python 3.11 or higher is needed.
+To download all the required packages, use the requirements.txt file.
+You can the command "pip install -r requirements.txt" to install them all at once.
+
+USE:
+The program comes with already trained models. Executing the program without any flags leads to only doing the evaluation.
+Flags can be used to execute specific functions:
+    --detailed_models:  Gives a detailed summery of the model with all its layers
+    --retrain:          If this flag is set, the program will retrain all the models and save the new models in the resource/model folder
+    --gradCAM:          With this flag you can receive a gradCAM image. You can additionally add a filepath if you want a specific image to be used
