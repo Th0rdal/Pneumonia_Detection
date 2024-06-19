@@ -93,17 +93,19 @@ class Acgan:
         plt.show()
 
     def generator(self, inputs, labels):
-        filters = [256, 128, 64, 32]
+        filters = [256, 128, 64, 32, 16]
         padding = 'same'
         x = inputs
         y = labels
         x = layers.concatenate([x, y])
         x = layers.Dense(1024, )(x)
-        x = layers.Dense(8 * 8 * filters[0],
+        x = layers.Dense(10 * 10 * filters[0],
                          kernel_regularizer=tf.keras.regularizers.L2(0.001))(x)
-        x = layers.Reshape((8, 8, filters[0]))(x)
+        x = layers.Reshape((10, 10, filters[0]))(x)
         for filter in filters:
-            if filter >= 64:
+            if filter >= 128:
+                strides = 3
+            elif filter >= 64:
                 strides = 2
             else:
                 strides = 1
@@ -119,7 +121,7 @@ class Acgan:
 
     def discriminator(self, inputs):
         x = inputs
-        filters = [32, 64, 128, 256]
+        filters = [16, 32, 64, 128, 256]
         padding = 'same'
         for filter in filters:
             if filter < 256:
@@ -201,7 +203,7 @@ class Acgan:
                 self.samples(G, noize, fakeLabels)
 
 
-acgan = Acgan(eta=0.0001, batch_size=64, epochs=120, weight_decay=6e-9, latent_space=100, image_shape=(180, 180, 3),
+acgan = Acgan(eta=0.0001, batch_size=64, epochs=500, weight_decay=6e-9, latent_space=200, image_shape=(180, 180, 3),
               kernel_size=5)
 # standardmäßig: 32000 Epochs
 
@@ -214,12 +216,13 @@ G, D, GAN = acgan.build()
 # tf.keras.utils.plot_model(G, show_shapes = True)
 
 acgan.trainAlgorithm(G, D, GAN)
-G.save('/kaggle/working/generator.h5')
+G.save('/kaggle/working/generator3.h5')
 
+#G = tf.keras.models.load_model('/kaggle/working/generator.h5')
 #------------------------------ GENERIEREN von Bildern, mit dem Model ------------------------------
 
 datasetGenerationSize = 500
-noize = tf.random.uniform(shape=(datasetGenerationSize, 100), minval=-1, maxval=1)
+noize = tf.random.uniform(shape=(datasetGenerationSize, 200), minval=-1, maxval=1)
 newlabels = tf.keras.utils.to_categorical(np.random.choice([0, 1], size=(datasetGenerationSize,)), num_classes=2)
 
 print(noize.shape)
