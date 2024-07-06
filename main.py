@@ -20,11 +20,11 @@ global_var.retrain = args.retrain
 #print("Train/PNEUMONIA: ", len(os.listdir("input/chest_xray/train/PNEUMONIA")), "Images")
 
 
-if args.gradCAM == '':
+if args.gradCAM is not None:
     path = args.gradCAM.strip()
-    model = tensorflow.keras.models.load_model(global_var.pathToCNNModel)
+    model = tensorflow.keras.models.load_model(global_var.pathToCNNModel+"/cnnModel")
     visualizeGradCAM(model, "CNN", path)
-    model = tensorflow.keras.models.load_model(global_var.pathToDenseNetModel)
+    model = tensorflow.keras.models.load_model(global_var.pathToDenseNetModel+"/denseNet121Model2")
     visualizeGradCAM(model, "DenseNet", path)
     exit(0)
 
